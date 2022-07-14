@@ -4,6 +4,7 @@ import ec.edu.espe.arquitectura.servidor1_arias.dao.ClienteRepository;
 import ec.edu.espe.arquitectura.servidor1_arias.dao.CuentaRepository;
 import ec.edu.espe.arquitectura.servidor1_arias.dao.NarcotraficanteRepository;
 import ec.edu.espe.arquitectura.servidor1_arias.dao.TransaccionRepository;
+import ec.edu.espe.arquitectura.servidor1_arias.enums.TransaccionEnum;
 import ec.edu.espe.arquitectura.servidor1_arias.exceptions.NotFoundException;
 import ec.edu.espe.arquitectura.servidor1_arias.exceptions.TransaccionException;
 import ec.edu.espe.arquitectura.servidor1_arias.model.Cliente;
@@ -53,10 +54,12 @@ public class TransaccionService {
     }
     Cliente cliente = obtenerCliente(cuentaDestino.getIdCliente());
     if (!this.revisionLista(cliente.getNombreCompleto()).isEmpty()) {
-      throw new TransaccionException("El destinatario es narcotraficante");
+      transaccion.setEstado(TransaccionEnum.BLOQUEADO.getValue());
+    } else {
+      transaccion.setEstado(TransaccionEnum.EJECUTADO.getValue());
+      cuentaOrigen.setSaldo(cuentaOrigen.getSaldo().subtract(valor));
+      cuentaDestino.setSaldo(cuentaDestino.getSaldo().add(valor));
     }
-    cuentaOrigen.setSaldo(cuentaOrigen.getSaldo().subtract(valor));
-    cuentaDestino.setSaldo(cuentaDestino.getSaldo().add(valor));
     transaccion.setCodigoInterno(UUID.randomUUID().toString());
     transaccion.setFecha(new Date());
     return transaccionRepository.save(transaccion);
